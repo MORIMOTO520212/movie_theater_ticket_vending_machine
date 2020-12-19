@@ -41,33 +41,28 @@ def console_clear():
 
 
 from msvcrt import getch
-EOT = 3
-TAB = 9
-ESC = 27
 
 # メインループ
 while True:
     key = ord(getch())
-    if key == EOT:
-        break
-    elif key == TAB:
-        print('keydown TAB')
-    elif key == ESC:
+    if key == 0:
         key = ord(getch())
-        if key == ord('['):
-            key = ord(getch())
-            if key == ord('A'):
-                print('keydown uparrow')
-                continue
-            elif key == ord('B'):
-                print('keydown downarrow')
-                continue
-            elif key == ord('C'):
-                print('keydown leftarrow')
-                continue
-            elif key == ord('D'):
-                print('keydown rightarrow')
-                continue
+        if key == ord('H'):
+            print("上")
+            continue
+        elif key == ord('P'):
+            print("下")
+            continue
+        elif key == ord('K'):
+            print("左")
+            continue
+        elif key == ord('M'):
+            print("右")
+            continue
+    elif key == 13:
+        print("エンター")
+    elif key == 3:
+        print("CTRL + C")
     else:
-        message = f'keydown {chr(key)}'
+        message = f'keydown {key}'
         print(message)
