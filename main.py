@@ -3,8 +3,11 @@
 #
 #   映画館　券売機システム
 #   created 2020.12.18
-#   
+#
+#   動作環境：Windows, Linux, Google Colaboratory
+#
 #   流れ
+#   初期設定：動作環境がGoogle Colaboratoryの場合は１、Windows, Linuxの場合は２を打って下さい。
 #   1.年齢確認
 #   2.年齢制限内の上映予定の映画一覧を表示
 #       IPUTメンバー会員かつ鑑賞回数5回の場合チケット料金を一律1000円で表示
@@ -40,29 +43,3 @@ def console_clear():
     os.system("cls")
 
 
-from msvcrt import getch
-
-# メインループ
-while True:
-    key = ord(getch())
-    if key == 0:
-        key = ord(getch())
-        if key == ord('H'):
-            print("上")
-            continue
-        elif key == ord('P'):
-            print("下")
-            continue
-        elif key == ord('K'):
-            print("左")
-            continue
-        elif key == ord('M'):
-            print("右")
-            continue
-    elif key == 13:
-        print("エンター")
-    elif key == 3:
-        print("CTRL + C")
-    else:
-        message = f'keydown {key}'
-        print(message)

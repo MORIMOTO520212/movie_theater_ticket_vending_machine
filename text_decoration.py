@@ -47,15 +47,15 @@ class Decoration:
     def end(self):
         return "\033[00m"
 
-d = Decoration()
+#d = Decoration()
 # ライト
-d.setting(mode="light", fg="black", bg="white")
+#d.setting(mode="light", fg="black", bg="white")
 # 選択
-d.setting(mode="select", fg="white", bg="red")
+#d.setting(mode="select", fg="white", bg="red")
 # ハイライト
-d.setting("hilight", "red", "white", True, True)
+#d.setting("hilight", "red", "white", True, True)
 # オリジナル
-custom = d.setting(mode="custom", fg="red", bg="white", bold=True, underline=True)
+#custom = d.setting(mode="custom", fg="red", bg="white", bold=True, underline=True)
 # 出力
-print(d.hilight()+"チケット"+d.end())
-print(custom+"チケット"+d.end())
+#print(d.hilight()+"チケット"+d.end())
+#print(custom+"チケット"+d.end())
