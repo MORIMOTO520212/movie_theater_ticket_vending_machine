@@ -20,6 +20,8 @@ class Decoration:
         if fg == "magenta": fg = "\033[35;"
         if fg == "cyan": fg = "\033[36;"
         if fg == "white": fg = "\033[37;"
+        if bold: fg += "01;"
+        if underline: fg += "04;"
         if bg == "black": bg = "40m"
         if bg == "red": bg = "41m"
         if bg == "green": bg = "42m"
@@ -28,8 +30,6 @@ class Decoration:
         if bg == "magenta": bg = "45m"
         if bg == "cyan": bg = "46m"
         if bg == "white": bg = "47m"
-        if bold: fg += "01;"
-        if underline: fg += "04;"
         if mode == "light":
             self.light_fgbg = fg+bg
         if mode == "select":
@@ -47,15 +47,15 @@ class Decoration:
     def end(self):
         return "\033[00m"
 
-#d = Decoration()
+d = Decoration()
 # ライト
-#d.setting(mode="light", fg="black", bg="white")
+d.setting(mode="light", fg="black", bg="white")
 # 選択
-#d.setting(mode="select", fg="white", bg="red")
+d.setting(mode="select", fg="white", bg="red")
 # ハイライト
-#d.setting("hilight", "red", "white", True, True)
+d.setting("hilight", "red", "white", True, True)
 # オリジナル
-#custom = d.setting(mode="custom", fg="red", bg="white", bold=True, underline=True)
+custom = d.setting(mode="custom", fg="red", bg="white", bold=True, underline=True)
 # 出力
-#print(d.hilight()+"チケット"+d.end())
-#print(custom+"チケット"+d.end())
+print(d.hilight()+"チケット"+d.end())
+print(custom+"チケット"+d.end())
