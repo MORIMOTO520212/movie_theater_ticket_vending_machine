@@ -57,5 +57,5 @@ d.setting("hilight", "red", "white", True, True)
 # オリジナル
 custom = d.setting(mode="custom", fg="red", bg="white", bold=True, underline=True)
 # 出力
-print(d.hilight()+"チケット"+d.end())
-print(custom+"チケット"+d.end())
+#print(d.hilight()+"チケット"+d.end())
+#print(custom+"チケット"+d.end())
