@@ -1,9 +1,29 @@
+import re
+
+def re_uni_txt(text):
+    pattern = r".*?(\033\[.*?m).*" # fg
+    result = re.match(pattern, text)
+    uni_txt = []
+    if result:
+        fg = result.group(1)
+        uni_txt.append(fg + text[len(fg)])
+        for i in range(len(text)):
+            if i == len(text)-6:
+                uni_txt.append(text[i] +"\033[00m")
+                break
+            elif i > len(fg):
+                uni_txt.append(text[i])
+        return uni_txt
+    return text
+
 class Screen:
-    L = []
     BD = [0,
         ["┏","┓","┗","┛","━","┃","┃"],     # Google Colaboratory
         ["┏━","━┓","┗━","━┛","━━","┃ "," ┃"] # Windows, Linux
     ]
+    def __init__(self):
+        self.L = []
+
     def SET_WINDOW(self, width=50, height=5, os=1):  # width - スクリーン横幅
         self.width = width              # os   - 1 Google Colaboratory, 2 Windows Linux
         self.height = height
@@ -37,6 +57,7 @@ class Screen:
         width = self.width
         BD = self.BD
         os = self.os
+        title = re_uni_txt(title) # カラーこ
         title_len = len(title)
         b_len = int((width - title_len) / 2)
         for i in range(width):
@@ -49,10 +70,15 @@ class Screen:
             if i > b_len and x < title_len:
                 self.L[0][i] = title[x]
     
-    def SET_TEXT_CENTER(self, msg="Ｍｅｓｓａｇｅ．"):
-        c_height = int(self.height / 2)
-        b_len = int((self.width - len(msg)) / 2)
-        for i in range(self.width):
+    def SET_TEXT_CENTER(self, msg="Ｍｅｓｓａｇｅ．", row=False):
+        width = self.width
+        height = self.height
+        if not row:
+            c_height = int(height / 2) # 縦中央　自動設定
+        else: 
+            c_height = row # 個人設定
+        b_len = int((width - len(msg)) / 2)
+        for i in range(width):
             x = i - b_len - 1
             if i > b_len and x < len(msg):
                 self.L[c_height][i] = msg[x]
@@ -80,17 +106,22 @@ class Screen:
                 print(raw, end="")
             print()
 
+
+
+import os, time
+OS = 2
+
+
 s = Screen()
 #   width=50 スクリーンの横幅
 #   height=5 スクリーンの高さ
 #   os=1 [Google Colaboratory],  os=2 [Windows] [Linux]
-s.SET_WINDOW(width=50, height=15, os=2)
+s.SET_WINDOW(width=50, height=15, os=OS)
 # タイトルをセット (全角)
-s.SET_TITLE("一番上のタイトル")
+s.SET_TITLE("\033[37;01;40m一番上のタイトル\033[00m")
 # 中央に文字を表示する
 s.SET_TEXT_CENTER("中央に表示する文字")
 # 左寄りに文字を表示する
 # row=1 1行目から
 s.SET_TEXT("左寄りに表示する文字", row=1)
-# 出力
-s.WINDOW()
+s.WINDOW() # 出力
