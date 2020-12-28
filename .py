@@ -50,7 +50,7 @@ def re_uni_txt2(text):
         return uni_txt
     return text
 
-A = "\033[37;40m白色の席はすでに予約されています。\033[00m"
+A = "あいうえお"
 B = ""
 
 print(re_uni_txt2(A))

@@ -1,8 +1,7 @@
-#   映画館　券売機システム
+#   映画館　券売機システム YOHO CINEMA.
 #   created 2020.12.18
-#   ※ [Jupyter Notebook] には対応していません。
 #
-#   動作環境：[Google Colaboratory], [Windows], [Linux]
+#   動作環境：[Google Colaboratory], [Windows], [Linux]  ※[Jupyter Notebook] 非対応
 #   
 #   流れ
 #   1.性別確認
@@ -23,6 +22,7 @@
 #   [リファレンス]
 #   bashで16色表示するスクリプト用意しておくと便利 (https://gist.github.com/soramugi/7968403)
 #   イオンシネマズの券売機でチケットを購入してみた (https://www.youtube.com/watch?v=iMuR0ATD48g)
+#   TOHOシネマズ南大沢 スクリーン座席表（483人）- MDATA (https://zaseki.music-mdata.com/26198/1)
 #   Google Colabの出力を定期的にクリアする方法 (https://www.366service.com/jp/qa/dfe7790f6cc709645fb160e50e504b22)
 
 import os

@@ -97,20 +97,39 @@ class Screen:
             if i > b_len and x < len(msg):
                 self.L[c_height][i] = msg[x]
 
-    def SET_TEXT(self, msg="Ｍｅｓｓａｇｅ．", row=1):
+    def SET_TEXT(self, msg="Ｍｅｓｓａｇｅ．", row=False, position="top,left"):
+        #   arguments
+        #   msg      - 全角の文字を指定する.
+        #   row      - 文字の縦の位置. 1が一番上. 左寄せのみ.
+        #   position - 文字の位置. [top] [center] [bottom] [right] [left] 2つ指定
+        #              例）position="center,left"
+        #   rowはpositionより優先
         width = self.width
         height = self.height
+        _row = row
+        row = 1 # init
+        col = 1 # init
         msg = re_uni_txt(msg) # 装飾文字変換
+        if not _row:
+            position = position.split(",")
+            if "top"    == position[0]: row = 1
+            if "center" == position[0]: row = int(height / 2)
+            if "bottom" == position[0]: row = height-2
+            if "left"   == position[1]: col = 1
+            if "right"  == position[1]: col = width - len(msg)-1
+        
         x = 0
         for h in range(height):
             if h < row: continue
             if h == height-1: break
-            for i in range(width):
-                if i == 0: continue
-                if i == width-1: break
+            for c in range(width):
+                if c < col: continue
+                if c == width-1: break # 終端
                 if x >= len(msg): break
-                self.L[h][i] = msg[x]
+                self.L[h][c] = msg[x]
                 x += 1
+        return True
+
 
     def CLEAR_TEXT(self):
         pass
@@ -141,7 +160,7 @@ class Screen:
                         self.L[h+row][i] = "  "
                     if x == len(seat_num):
                         break
-        return no_vacant
+        return no_vacant # 満席
 
     def WINDOW(self): # 出力
         for line in self.L:
@@ -155,23 +174,24 @@ import os, time
 OS = 2
 
 s = Screen()
-#   width=50 スクリーンの横幅
-#   height=5 スクリーンの高さ
-#   os=1 [Google Colaboratory],  os=2 [Windows] [Linux]
-#s.SET_WINDOW(width=50, height=15, os=OS)
+# width=50 スクリーンの横幅
+# height=5 スクリーンの高さ
+# os=1 [Google Colaboratory],  os=2 [Windows] [Linux]
+s.SET_WINDOW(width=40, height=18, os=OS)
 # タイトルをセット (全角)
-#s.SET_TITLE("一番上のタイトル")
+s.SET_TITLE("一番上のタイトル")
 # 中央に文字を表示する
-#s.SET_TEXT_CENTER("中央に表示する文字")
+s.SET_TEXT_CENTER("中央に表示する文字")
 # 左寄りに文字を表示する
 # row=1 1行目から
-#s.SET_TEXT("左寄りに表示する文字", row=1)
-#s.WINDOW() # 出力
+s.SET_TEXT("文字", position="top,right")
+s.WINDOW() # 出力
 
-# 8 座席選択
-s.SET_WINDOW(width=40, height=18, os=OS)
-s.SET_TITLE("スクリーン１")
-s.SET_TEXT("席を指定するにはアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
-s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
-no_vacant = s.SEAT_CREATE(row=4, vacant="◎") # 満席IDの配列を返す
-s.WINDOW()
+# [座席選択 スクリーン画面]
+#s.SET_WINDOW(width=40, height=18, os=OS)
+#s.SET_TITLE("スクリーン１")
+#s.SET_TEXT("席の指定はアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
+#s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
+#s.SET_TEXT("戻る　ｂ", row=16)
+#no_vacant = s.SEAT_CREATE(row=4, vacant="◎") # 満席IDの配列を返す
+#s.WINDOW()
