@@ -87,50 +87,6 @@ EXAMPLEmdata = [
 
 import random, datetime
 
-# empty - 余裕あり
-# slight - 残りわずか
-# full - 満席
-
-movie_meta_contents = [
-    {"title": "約束のネバーランド", "hour": "１１９分", "restricted": False},
-    {"title": "ＳＴＡＮＤ　ＢＹ　ＭＥドラえもん２", "hour": "１１０分","restricted": False},
-    {"title": "劇場版「鬼滅の刃」無限列車編", "hour": "１１０分", "restricted": "ＰＧ１２"},
-    {"title": "映画　えんとつ町のプペル", "hour": "１１５分", "restricted": False},
-    {"title": "劇場版　ポケットモンスター　ココ", "hour": "１１５分", "restricted": False},
-    {"title": "吹替　ワンダーウーマン　１９８４", "hour": "１６５分", "restricted": False},
-    {"title": "パウ・パトロール　カーレース大作戦ＧＯ！ＧＯ！", "hour": "５５分", "restricted": False},
-    {"title": "君の名は。", "hour": "１１２分", "restricted": False},
-    {"title": "魔女がいっぱい", "hour": "１０４分", "restricted": False},
-    {"title": "天外者", "hour": "１０９分", "restricted": False},
-    {"title": "ジョゼと虎と魚たち", "hour": "９８分", "restricted": False},
-    {"title": "劇場版　Ｆａｔｅ／Ｇｒａｎｄ　Ｏｒｄｅｒ　神聖円卓領域キャメロット　全編　Ｗａｎｄｅｒｉｎｇ；Ａｇａｔｅｒｍ", "hour": "８９分", "restricted": False},
-    {"title": "新解釈・三國志", "hour": "１１３分", "restricted": False}
-]
-vacant = [
-    ["empty", "◎"], 
-    ["slight", "△"], 
-    ["full", "✕"]
-]
-screen_list = [
-    "スクリーン０１",
-    "スクリーン０２",
-    "スクリーン０３",
-    "スクリーン０４",
-    "スクリーン０５",
-    "スクリーン０６",
-    "スクリーン０７",
-    "スクリーン０８"
-]
-timetbl_list = [
-    "０８：００～０９：５５",
-    "１０：００～１１：５５",
-    "１２：００～１３：５５",
-    "１４：００～１５：５５",
-    "１６：００～１７：５５",
-    "１８：００～１９：５５",
-    "２０：００～２１：５５"
-]
-
 def toem(n):
     # 半角数字から全角数字に変換する
     num = ["０","１","２","３","４","５","６","７","８","９"]
@@ -138,6 +94,56 @@ def toem(n):
     for i in n:
         em += num[int(i)]
     return em
+
+# empty - 余裕あり
+# slight - 残りわずか
+# full - 満席
+
+movie_meta_contents = [
+    {"title": "約束のネバーランド", "hour": "１１９分", "restricted": "Ｇ"},
+    {"title": "ＳＴＡＮＤ　ＢＹ　ＭＥドラえもん２", "hour": "１１０分","restricted": "Ｇ"},
+    {"title": "劇場版「鬼滅の刃」無限列車編", "hour": "１１０分", "restricted": "ＰＧ１２"},
+    {"title": "映画　えんとつ町のプペル", "hour": "１１５分", "restricted": "Ｇ"},
+    {"title": "劇場版　ポケットモンスター　ココ", "hour": "１１５分", "restricted": "Ｇ"},
+    {"title": "吹替　ワンダーウーマン　１９８４", "hour": "１６５分", "restricted": "Ｇ"},
+    {"title": "パウ・パトロール　カーレース大作戦ＧＯ！ＧＯ！", "hour": "５５分", "restricted": "Ｇ"},
+    {"title": "君の名は。", "hour": "１１２分", "restricted": "Ｇ"},
+    {"title": "魔女がいっぱい", "hour": "１０４分", "restricted": "Ｇ"},
+    {"title": "天外者", "hour": "１０９分", "restricted": "Ｇ"},
+    {"title": "ジョゼと虎と魚たち（＇２０）", "hour": "９８分", "restricted": "Ｇ"},
+    {"title": "劇場版　Ｆａｔｅ／Ｇｒａｎｄ　Ｏｒｄｅｒ　神聖円卓領域キャメロット　全編　Ｗａｎｄｅｒｉｎｇ；Ａｇａｔｅｒｍ", "hour": "８９分", "restricted": "Ｇ"},
+    {"title": "新解釈・三國志", "hour": "１１３分", "restricted": "Ｇ"},
+    {"title": "天気の子", "hour": "１１１分", "restricted": "Ｇ"},
+    {"title": "借りぐらしのアリエッティ", "hour": "９５分", "restricted": "Ｇ"},
+    {"title": "ヱヴァンゲリヲン新劇場版：Ｑ", "hour": "１０６分", "restricted": "Ｇ"},
+    {"title": "ぐらんぶる", "hour": "１０８分", "restricted": "ＰＧ１２"},
+    {"title": "映画クレヨンしんちゃん　激突！ラクガキングダムとほぼ四人の勇者", "hour": "１０４分", "restricted": "Ｇ"},
+    {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"},
+    {"title": "", "hour": "分", "restricted": "Ｇ"}
+]
+vacant = [
+    ["empty", "◎"], 
+    ["slight", "△"], 
+    ["full", "✕"]
+]
+screen_list = [
+    "スクリーン０１",　"スクリーン０２",　"スクリーン０３",　"スクリーン０４",
+    "スクリーン０５",　"スクリーン０６",　"スクリーン０７",　"スクリーン０８"
+]
+timetbl_list = [
+    "０８：００～０９：５５",　"１０：００～１１：５５",　"１２：００～１３：５５",
+    "１４：００～１５：５５",　"１６：００～１７：５５",　"１８：００～１９：５５",
+    "２０：００～２１：５５"
+]
 
 now = datetime.datetime.now()
 d_Y = now.strftime("%Y")

@@ -11,7 +11,7 @@
 #   [下線]
 #   True 下線を引く
 class Decoration:
-    def setting(self, mode, fg, bg, bold=False, underline=False):
+    def setting(self, mode, fg="white", bg="black", bold=False, underline=False):
         if fg == "black": fg = "\033[30;"
         if fg == "red": fg = "\033[31;"
         if fg == "green": fg = "\033[32;"

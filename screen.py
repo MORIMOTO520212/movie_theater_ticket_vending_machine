@@ -1,8 +1,10 @@
 import re, random, text_decoration
 
 d = text_decoration.Decoration()
-empty = d.setting(mode="custom", fg="white", bg="white")
-white = d.setting(mode="custom", fg="black", bg="white")
+empty     = d.setting(mode="custom", fg="white", bg="white")
+white     = d.setting(mode="custom", fg="black", bg="white")
+strength  = d.setting(mode="custom", fg="yellow", bg="black")
+underline = d.setting(mode="custom", underline=True)
 
 def re_uni_txt(text):
     pattern = r".*?(\033\[.*?m).*" # color script
@@ -88,7 +90,7 @@ class Screen:
         width = self.width
         height = self.height
         if not row:
-            c_height = int(height / 2) # 縦中央　自動設定
+            c_height = int(height / 2)-1 # 縦中央　自動設定
         else: 
             c_height = row # 個人設定
         b_len = int((width - len(msg)) / 2)
@@ -97,7 +99,7 @@ class Screen:
             if i > b_len and x < len(msg):
                 self.L[c_height][i] = msg[x]
 
-    def SET_TEXT(self, msg="Ｍｅｓｓａｇｅ．", row=False, position="top,left"):
+    def SET_TEXT(self, msg="Ｍｅｓｓａｇｅ．", row=False, col=False, position="top,left"):
         #   arguments
         #   msg      - 全角の文字を指定する.
         #   row      - 文字の縦の位置. 1が一番上. 左寄せのみ.
@@ -106,15 +108,13 @@ class Screen:
         #   rowはpositionより優先
         width = self.width
         height = self.height
-        _row = row
-        row = 1 # init
-        col = 1 # init
         msg = re_uni_txt(msg) # 装飾文字変換
-        if not _row:
-            position = position.split(",")
+        position = position.split(",")
+        if not row:
             if "top"    == position[0]: row = 1
             if "center" == position[0]: row = int(height / 2)
             if "bottom" == position[0]: row = height-2
+        if not col:
             if "left"   == position[1]: col = 1
             if "right"  == position[1]: col = width - len(msg)-1
         
@@ -179,15 +179,47 @@ s = Screen()
 # os=1 [Google Colaboratory],  os=2 [Windows] [Linux]
 s.SET_WINDOW(width=40, height=18, os=OS)
 # タイトルをセット (全角)
-s.SET_TITLE("一番上のタイトル")
+#s.SET_TITLE("ＹＯＨＯ　ＫＩＮＥＭＡＳ")
 # 中央に文字を表示する
-s.SET_TEXT_CENTER("中央に表示する文字")
+#s.SET_TEXT("ようこそ！")
 # 左寄りに文字を表示する
 # row=1 1行目から
-s.SET_TEXT("文字", position="top,right")
-s.WINDOW() # 出力
+#s.SET_TEXT("文字", position="top,right")
+#s.WINDOW() # 出力
 
-# [座席選択 スクリーン画面]
+# 1.[ようこそ！]
+#s.SET_TITLE(f"{strength}ＹＯＨＯ　ＫＩＮＥＭＡＳ{d.end()}")
+#s.SET_TEXT_CENTER("ようこそ！", row=5)
+#s.SET_TEXT_CENTER("次へ進むにはエンターを押してください", row=8)
+#s.WINDOW()
+
+# 2.[性別確認]
+#s.SET_TITLE("確認１")
+#s.SET_TEXT_CENTER("性別を選択してください。", row=5)
+#s.SET_TEXT_CENTER("１．男性　／　２．女性", row=8)
+#s.SET_TEXT("数字を入力してください", position="bottom,left")
+#s.WINDOW()
+
+# 3.[年齢確認]
+#s.SET_TITLE("確認２")
+#s.SET_TEXT_CENTER("年齢を入力してください。")
+#s.SET_TEXT("数字を入力してください", position="bottom,left")
+#s.WINDOW()
+
+# 4.[入力内容確認]
+#s.SET_TITLE("入力内容確認")
+#s.SET_TEXT_CENTER("この内容で正しいですか。", row=5)
+#s.SET_TEXT_CENTER("性別：男性", row=8)
+#s.SET_TEXT_CENTER("年齢：１９歳", row=10)
+#s.SET_TEXT("やり直す　ｎ　／　次へ進む　ｙ", position="bottom,left")
+#s.WINDOW()
+
+# 5.[年齢制限内の上映予定の映画一覧を表示]
+
+# 6.[]
+
+
+# 7.[座席選択 スクリーン画面]
 #s.SET_WINDOW(width=40, height=18, os=OS)
 #s.SET_TITLE("スクリーン１")
 #s.SET_TEXT("席の指定はアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
