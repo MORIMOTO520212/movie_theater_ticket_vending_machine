@@ -91,7 +91,7 @@ def toem(n):
     # 半角数字から全角数字に変換する
     num = ["０","１","２","３","４","５","６","７","８","９"]
     em = ""
-    for i in n:
+    for i in str(n):
         em += num[int(i)]
     return em
 
@@ -118,30 +118,20 @@ movie_meta_contents = [
     {"title": "ヱヴァンゲリヲン新劇場版：Ｑ", "hour": "１０６分", "restricted": "Ｇ"},
     {"title": "ぐらんぶる", "hour": "１０８分", "restricted": "ＰＧ１２"},
     {"title": "映画クレヨンしんちゃん　激突！ラクガキングダムとほぼ四人の勇者", "hour": "１０４分", "restricted": "Ｇ"},
-    {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"},
-    {"title": "", "hour": "分", "restricted": "Ｇ"}
+    {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"}
 ]
-vacant = [
+vacant_list = [
     ["empty", "◎"], 
     ["slight", "△"], 
     ["full", "✕"]
 ]
 screen_list = [
-    "スクリーン０１",　"スクリーン０２",　"スクリーン０３",　"スクリーン０４",
-    "スクリーン０５",　"スクリーン０６",　"スクリーン０７",　"スクリーン０８"
+    "スクリーン０１", "スクリーン０２", "スクリーン０３", "スクリーン０４",
+    "スクリーン０５", "スクリーン０６", "スクリーン０７", "スクリーン０８"
 ]
 timetbl_list = [
-    "０８：００～０９：５５",　"１０：００～１１：５５",　"１２：００～１３：５５",
-    "１４：００～１５：５５",　"１６：００～１７：５５",　"１８：００～１９：５５",
+    "０８：００～０９：５５", "１０：００～１１：５５", "１２：００～１３：５５",
+    "１４：００～１５：５５", "１６：００～１７：５５", "１８：００～１９：５５",
     "２０：００～２１：５５"
 ]
 
@@ -172,7 +162,7 @@ for m in mdata:
             timetbl.append([
                 screen_list[random.randint(0,7)], 
                 timetbl_list[i], 
-                vacant[random.randint(0,2)][0]
+                vacant_list[random.randint(0,2)][0]
             ])
     m["timetbl"] = timetbl # タイムテーブル
 

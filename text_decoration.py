@@ -11,33 +11,44 @@
 #   [下線]
 #   True 下線を引く
 class Decoration:
-    def setting(self, mode, fg="white", bg="black", bold=False, underline=False):
-        if fg == "black": fg = "\033[30;"
-        if fg == "red": fg = "\033[31;"
-        if fg == "green": fg = "\033[32;"
-        if fg == "yellow": fg = "\033[33;"
-        if fg == "blue": fg = "\033[34;"
-        if fg == "magenta": fg = "\033[35;"
-        if fg == "cyan": fg = "\033[36;"
-        if fg == "white": fg = "\033[37;"
-        if bold: fg += "01;"
-        if underline: fg += "04;"
-        if bg == "black": bg = "40m"
-        if bg == "red": bg = "41m"
-        if bg == "green": bg = "42m"
-        if bg == "yellow": bg = "43m"
-        if bg == "blue": bg = "44m"
-        if bg == "magenta": bg = "45m"
-        if bg == "cyan": bg = "46m"
-        if bg == "white": bg = "47m"
+    def setting(self, mode, fg="white", bg=False, bold=False, underline=False):
+        code = "\033["
+        if fg:
+            if fg == "black": code += "30"
+            if fg == "red": code += "31"
+            if fg == "green": code += "32"
+            if fg == "yellow": code += "33"
+            if fg == "blue": code += "34"
+            if fg == "magenta": code += "35"
+            if fg == "cyan": code += "36"
+            if fg == "white": code += "37"
+            if bg or bold or underline: code += ";"
+        if bg:
+            if bg == "black": code += "40"
+            if bg == "red": code += "41"
+            if bg == "green": code += "42"
+            if bg == "yellow": code += "43"
+            if bg == "blue": code += "44"
+            if bg == "magenta": code += "45"
+            if bg == "cyan": code += "46"
+            if bg == "white": code += "47"
+            if bold or underline: code += ";"
+        if bold:
+                code += "01"
+                if underline: code += ";"
+        if underline:
+            code += "04"
+
+        code += "m"
+
         if mode == "light":
-            self.light_fgbg = fg+bg
+            self.light_fgbg = code
         if mode == "select":
-            self.select_fgbg = fg+bg
+            self.select_fgbg = code
         if mode == "hilight":
-            self.hilight_fgbg = fg+bg
+            self.hilight_fgbg = code
         if mode == "custom":
-            return fg+bg
+            return code
     def light(self):
         return self.light_fgbg # 文字色;背景色
     def select(self):

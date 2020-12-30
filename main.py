@@ -1,8 +1,10 @@
 #   映画館　券売機システム YOHO CINEMA.
 #   created 2020.12.18
 #
-#   動作環境：[Google Colaboratory], [Windows], [Linux]  ※[Jupyter Notebook] 非対応
+#   動作環境：[Google Colaboratory], [Visual Studio Code], [Linux] 
+#   ※[Jupyter Notebook] [Windows cmd] 非対応
 #   
+#   必須モジュール：re, time, random, datetime
 #   流れ
 #   1.ようこそ！
 #   2.性別確認
@@ -24,8 +26,6 @@
 #   TOHOシネマズ南大沢 スクリーン座席表（483人）- MDATA (https://zaseki.music-mdata.com/26198/1)
 #   Google Colabの出力を定期的にクリアする方法 (https://www.366service.com/jp/qa/dfe7790f6cc709645fb160e50e504b22)
 
-import os
-
 # empty - 余裕あり
 # slight - 残りわずか
 # full - 満席
@@ -41,12 +41,12 @@ count = 5
 
 # 実行環境検証
 console_clear_st = True
-OS = 1
+OS = 1 # google colab
 try:
     from google.colab import output
 except ImportError:
     console_clear_st = False
-    OS = 2
+    OS = 2 # vscode linux
     import os
 
 def console_clear():
