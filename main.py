@@ -157,6 +157,10 @@ class Decoration:
     def end(self):
         return "\033[00m"
 
+gender_ch = {
+    "male": "男性",
+    "female": "女性"
+}
 vacant_list = [
     ["empty", "◎"], 
     ["slight", "△"], 
@@ -203,7 +207,7 @@ for m in mdata:
             ])
     m["timetbl"] = timetbl # タイムテーブル
 
-d = text_decoration.Decoration()
+d = Decoration()
 empty     = d.setting(mode="custom", fg="white",  bg="white")
 white     = d.setting(mode="custom", fg="black",  bg="white")
 strength  = d.setting(mode="custom", fg="yellow")
@@ -317,12 +321,14 @@ class Screen:
         os = self.os
         BD = self.BD
         for h in range(height):
-            if 0 == h: continue
             if h == height-1: break
             for w in range(width):
                 if 0 == w: continue
                 if w == width-1: break
-                self.L[h][w] = "　"
+                if 0 == h:
+                    self.L[h][w] = BD[os][4] # top border
+                else:
+                    self.L[h][w] = "  "
         return False
 
     def SEAT_CREATE(self, row=3, vacant="empty"):
@@ -356,10 +362,18 @@ class Screen:
     def MOVIE_LIST_CREATE(self ,page=1, view_num=4, row=4, col=1):
         width = self.width
         height = self.height
-        table_num = view_num*page
-        page = table_num - view_num
+        page_end = int(len(mdata)/view_num)
+        if len(mdata)%view_num: page_end += 1
+        if page > page_end:
+            page = page_end
+        if page < 1:
+            page = 1
+        table_num_end = view_num*page
+        table_num_start = table_num_end - view_num
+        if len(mdata)%view_num:
+            page_end += 1
         for i in range(len(mdata)):
-            if  i >= page and i < table_num:
+            if  i >= table_num_start and i < table_num_end:
                 # 映画番号
                 str_num = toem(i+1)
                 title   = str_num+"．"+mdata[i]["title"]
@@ -370,8 +384,9 @@ class Screen:
                 metadata   = re_uni_txt(f"　{date}　上映時間：{hour}　レイティング：{green + restricted + d.end()}")
                 if "ＰＧ１２" == restricted:
                     metadata   = re_uni_txt(f"　{date}　上映時間：{hour}　レイティング：{red + restricted + d.end()}")
-            
+
                 for c in range(len(title)): # 1行目表示
+                    if c == width-2: break  # 折り返しなし
                     self.L[row][c+col] = title[c]
                 for c in range(len(metadata)): # 2行目表示
                     self.L[row+1][c+col] = metadata[c]
@@ -380,7 +395,7 @@ class Screen:
                     if _ == width-1: continue 
                     self.L[row+2][_] = self.BD[self.os][4]
                 row += 3
-        return True
+        return page
     
     def TIMETABLE_CREATE(self, f=False, page=1, view_num=4, row=4, col=1):
         width = self.width
@@ -425,44 +440,15 @@ s = Screen()
 s.SET_WINDOW(width=40, height=18, os=OS)
 
 
-# 6.[タイムテーブル選択] - 製作中
-#s.SET_TITLE("タイムテーブルを選択")
-#if OS == 1:
-#    s.SET_TEXT_CENTER("空席状況：◎余裕あり　△残りわずか　✕満席", row=1)
-#if OS == 2:
-#    text = ["空","席","状","況","：","◎ ","余","裕","あ","り","　","△ ","残","り","わ","ず","か","　","✕ ","満","席"]
-#    s.SET_TEXT_CENTER(text, row=2)
-#s.SET_TEXT_CENTER("選択するには数字を入力してください", row=4)
-#s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
-#s.TIMETABLE_CREATE(f=3, page=1, row=6) # f - mdataのインデックス
-#s.WINDOW()
-
-# 7.[座席選択 スクリーン画面]
-#s.SET_TITLE("座席指定　スクリーン１")
-#s.SET_TEXT("席の指定はアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
-#s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
-#s.SET_TEXT("戻る　ｂ", position="bottom,left")
-#s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
-#no_vacant = s.SEAT_CREATE(row=4, vacant="empty") # 満席IDの配列を返す
-#s.WINDOW()
-
-# 8.[タイムテーブル選択]
-#s.SET_TITLE("内容確認")
-#s.SET_TEXT_CENTER("この内容でよろしいですか", row=4)
-#s.SET_TEXT("タイトル", row=6, col=10)
-#s.SET_TEXT("場所：スクリーン１", row=7, col=10)
-#s.SET_TEXT("時間：０９：１０～１０：５０", row=8, col=10)
-#s.SET_TEXT(["座","席","：","F ","15"], row=9, col=10)
-#s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
-#s.WINDOW()
-
 usrdata = {"gender": "", "age":"", "mdata_idx": 0, "timetbl_idx": 0}
+page = 1
+S = 5
 while True:
     s.CLEAR_WINDOW() # 画面初期化
+    console_clear()
 
     # 1.[ようこそ！]
     if 1 == S:
-        console_clear()
         s.SET_TITLE(strength+"ＹＯＨＯ　ＫＩＮＥＭＡＳ"+d.end())
         s.SET_TEXT_CENTER("ようこそ！", row=5)
         s.SET_TEXT_CENTER("次へ進むにはエンターを押してください", row=8)
@@ -473,7 +459,6 @@ while True:
 
     # 2.[性別確認]
     if 2 == S:
-        console_clear()
         s.SET_TITLE("確認１")
         s.SET_TEXT_CENTER("性別を選択してください。", row=5)
         s.SET_TEXT_CENTER("１．男性　／　２．女性", row=8)
@@ -489,7 +474,6 @@ while True:
 
     # 3.[年齢確認]
     if 3 == S:
-        console_clear()
         s.SET_TITLE("確認２")
         s.SET_TEXT_CENTER("年齢を入力してください。")
         s.SET_TEXT("数字を入力してください", position="bottom,left")
@@ -501,11 +485,11 @@ while True:
 
     # 4.[入力内容確認]
     if 4 == S:
-        console_clear()
         s.SET_TITLE("入力内容確認")
         s.SET_TEXT_CENTER("この内容で正しいですか。", row=5)
-        s.SET_TEXT_CENTER("性別：男性", row=8)
-        s.SET_TEXT_CENTER("年齢：１９歳", row=10)
+        print(usrdata["gender"])
+        s.SET_TEXT_CENTER(f"性別：{gender_ch[usrdata['gender']]}", row=8)
+        s.SET_TEXT_CENTER(f"年齢：{toem(usrdata['age'])}歳", row=10)
         s.SET_TEXT("やり直す　ｎ　／　次へ進む　ｙ", position="bottom,left")
         s.WINDOW()
         res = input("入力>")
@@ -516,136 +500,97 @@ while True:
         continue
 
     # 5.[年齢制限内の上映予定の映画一覧を表示]
-    if 5 == S: 
-        page = 1
-        while True:
-            console_clear()
-            s.SET_TITLE("上映映画　一覧")
-            s.SET_TEXT_CENTER("映画を選択するには番号を入力してください", row=2)
-            s.MOVIE_LIST_CREATE(page=page) # ページを超えてエラーが出ないようにする
-            s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
-            s.WINDOW()
-            res = input("入力>")
-            if "n" == res: page += 1
-            elif "b" == res: page -=1
-            else:
-                usrdata["mdata_idx"] = int(res)
-                break
-        S += 1
+    if 5 == S:
+        s.SET_TITLE("上映映画　一覧")
+        s.SET_TEXT_CENTER("映画を選択するには番号を入力してください", row=2)
+        page = s.MOVIE_LIST_CREATE(page=page) # ページを超えてエラーが出ないようにする
+        s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
+        s.WINDOW()
+        res = input("入力>")
+        if "n" == res: page += 1
+        elif "b" == res: page -= 1
+        else:
+            try:
+                usrdata["mdata_idx"] = int(res)-1
+                page = 1
+                S += 1
+            except: S = 59
+        continue
+
+    if 59 == S: # 5 エラー処理
+        s.SET_TEXT_CENTER("入力がエラーです。", row=5)
+        s.SET_TEXT_CENTER("コマンドや番号の入力は半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        time.sleep(1)
+        S = 5
         continue
 
     # 6.[タイムテーブル選択]
     if 6 == S:
-        while True:
-            s.SET_TITLE("タイムテーブルを選択")
-            if OS == 1:
-                s.SET_TEXT_CENTER("空席状況：◎余裕あり　△残りわずか　✕満席", row=1)
-            if OS == 2:
-                text = ["空","席","状","況","：","◎ ","余","裕","あ","り","　","△ ","残","り","わ","ず","か","　","✕ ","満","席"]
-                s.SET_TEXT_CENTER(text, row=2)
-            s.SET_TEXT_CENTER("選択するには数字を入力してください", row=4)
-            s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
-            no_vacant = s.TIMETABLE_CREATE(f=usrdata["mdata_idx"], page=1, row=6) # f - mdataのインデックス
-            s.WINDOW()
-            res = input("数字>")
-            if "n" == res: page += 1
-            elif "b" == res: page -= 1
-            else:
-                if int(res) not in no_vacant:
-                    usrdata["timetbl_idx"] = int(res)
-                    break
-                else:
-                    s.CLEAR_WINDOW()
-                    s.SET_TEXT_CENTER("選択した時間は満席です。")
-                    s.WINDOW()
-                    sleep(1)
-        S += 1
+        s.SET_TITLE("タイムテーブルを選択")
+        if OS == 1:
+            s.SET_TEXT_CENTER("空席状況：◎余裕あり　△残りわずか　✕満席", row=1)
+        if OS == 2:
+            text = ["空","席","状","況","：","◎ ","余","裕","あ","り","　","△ ","残","り","わ","ず","か","　","✕ ","満","席"]
+            s.SET_TEXT_CENTER(text, row=2)
+        s.SET_TEXT_CENTER("選択するには数字を入力してください", row=4)
+        s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
+        no_vacant = s.TIMETABLE_CREATE(f=usrdata["mdata_idx"], page=page, row=6) # f - mdataのインデックス
+        s.WINDOW()
+        res = input("数字>")
+        if "n" == res: page += 1
+        elif "b" == res: page -= 1
+        else:
+            if int(res) not in no_vacant:
+                usrdata["timetbl_idx"] = int(res)
+                S += 1
+            else: S = 69
+        continue
+    
+    if 69 == S: # 6 エラー処理
+        s.CLEAR_WINDOW()
+        s.SET_TEXT_CENTER("選択した時間は満席です。")
+        s.WINDOW()
+        time.sleep(1)
+        S = 6
         continue
 
+    # 7.[座席選択 スクリーン画面]
     if 7 == S:
+        s.SET_TITLE("座席指定　スクリーン１")
+        s.SET_TEXT("席の指定はアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
+        s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
+        s.SET_TEXT("戻る　ｂ", position="bottom,left")
+        s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
+        vacant = mdata[usrdata["mdata_idx"]]["timetbl"][usrdata["timetbl_idx"]][2]
+        no_vacant = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
+        s.WINDOW()
+        while True:
+            res = input("座席ID>")
+            if  res not in no_vacant:
+                S += 1
+                break
+            else:
+                console_clear()
+                s.WINDOW()
+            continue
+
+    # 8.[タイムテーブル選択]
     if 8 == S:
-
-    view_max = 3 # 一画面に表示するテーブル数
-
-    movie_max = view_max
-    movie_index = 0
-    while True:
-        tbl_len = len(mdata)
-        print("選択するには映画の番号を入力してください")
-
-        for i in range(len(tbl_len)):
-            if i < movie_max and i >= movie_max - view_max:
-                restricted = mdata[i]['restricted']
-                if not restricted: restricted = "　"
-                print("{}. {}　日付：{}　{}".format(str(i+1), mdata[i]['title'], mdata[i]['hour'], restricted))
-        inp = input("\n前のページ b  /  次のページ n\n入力欄>")
-        console_clear()
-
-        t_max = tbl_len + (view_max - tbl_len % view_max)
-        if not tbl_len % view_max:
-            t_max = tbl_len
-
-        if inp == "n":
-            movie_max += view_max # next
-            if movie_max > t_max:
-                movie_max = view_max
+        s.SET_TITLE("内容確認")
+        s.SET_TEXT_CENTER("この内容でよろしいですか", row=4)
+        s.SET_TEXT("タイトル", row=6, col=10)
+        s.SET_TEXT("場所：スクリーン１", row=7, col=10)
+        s.SET_TEXT("時間：０９：１０～１０：５０", row=8, col=10)
+        s.SET_TEXT(["座","席","：","F ","15"], row=9, col=10)
+        s.SET_TEXT("料金：", row=10, col=10)
+        s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
+        s.WINDOW()
+        res = input("入力>")
+        if "n" == res:
+            S = 5
             continue
-        if inp == "b":
-            movie_max -= view_max # back
-            if movie_max == 0:
-                movie_max = t_max
-            continue
+        if "y" == res:
+            break
 
-        try:
-            movie_index = int(inp)-1 # 映画のインデックス
-        except:
-            print("不正な入力です。")
-            continue
-        break
-
-    timetbl_max = view_max
-    timetbl_index = 0
-    while True:
-        tbl_len = len(mdata[movie_index]["timetbl"])
-        if OS == 1:
-            print("空席状況：◎余裕あり　△残りわずか　✕満席")
-        if OS == 2:
-            print("空席状況：◎ 余裕あり　△ 残りわずか　✕ 満席") # 記号の後に空白必須
-        print("選択するには数字を入力してください")
-
-        for i in range(tbl_len):
-            if i < timetbl_max and i >= timetbl_max - view_max:
-                if OS == 1: # Google Colabratory
-                    print("{}. {}　{}　{}".format(
-                        str(i+1), mdata[movie_index]["timetbl"][i][0], mdata[movie_index]["timetbl"][i][1], mdata[movie_index]["timetbl"][i][2]))
-                if OS == 2: # Windows Linux
-                    print("{}. {}　{}　{} ".format(  # 記号の後に空白必須
-                        str(i+1), mdata[movie_index]["timetbl"][i][0], mdata[movie_index]["timetbl"][i][1], mdata[movie_index]["timetbl"][i][2]))
-        inp = input("\n前のページ b  /  次のページ n\n入力欄>")
-        console_clear()
-
-        t_max = tbl_len + (view_max - tbl_len % view_max)
-        if not tbl_len % view_max:
-            t_max = tbl_len
-
-        if inp == "n":
-            timetbl_max += view_max # next
-            if timetbl_max > t_max:
-                timetbl_max = view_max
-            continue
-        if inp == "b":
-            timetbl_max -= view_max # back
-            if timetbl_max == 0:
-                timetbl_max = t_max
-            continue
-        try:
-            timetbl_index = int(inp)-1 # 上映時間のインデックス
-        except:
-            print("不正な入力です。")
-            console_clear()
-            continue
-        break
-
-    while True:
-        print("席を指定するにはアルファベットに続き数字を組み合わせた座席IDを入力してください")
-        inp = input("座席ID>")
+print("Complete!")

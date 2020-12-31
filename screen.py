@@ -353,10 +353,18 @@ class Screen:
     def MOVIE_LIST_CREATE(self ,page=1, view_num=4, row=4, col=1):
         width = self.width
         height = self.height
-        table_num = view_num*page
-        page = table_num - view_num
+        page_end = int(len(mdata)/view_num)
+        if len(mdata)%view_num: page_end += 1
+        if page > page_end:
+            page = page_end
+        if page < 1:
+            page = 1
+        table_num_end = view_num*page
+        table_num_start = table_num_end - view_num
+        if len(mdata)%view_num:
+            page_end += 1
         for i in range(len(mdata)):
-            if  i >= page and i < table_num:
+            if  i >= table_num_start and i < table_num_end:
                 # 映画番号
                 str_num = toem(i+1)
                 title   = str_num+"．"+mdata[i]["title"]
@@ -367,8 +375,9 @@ class Screen:
                 metadata   = re_uni_txt(f"　{date}　上映時間：{hour}　レイティング：{green + restricted + d.end()}")
                 if "ＰＧ１２" == restricted:
                     metadata   = re_uni_txt(f"　{date}　上映時間：{hour}　レイティング：{red + restricted + d.end()}")
-            
+
                 for c in range(len(title)): # 1行目表示
+                    if c == width-2: break  # 折り返しなし
                     self.L[row][c+col] = title[c]
                 for c in range(len(metadata)): # 2行目表示
                     self.L[row+1][c+col] = metadata[c]
@@ -377,7 +386,7 @@ class Screen:
                     if _ == width-1: continue 
                     self.L[row+2][_] = self.BD[self.os][4]
                 row += 3
-        return True
+        return page
     
     def TIMETABLE_CREATE(self, f=False, page=1, view_num=4, row=4, col=1):
         width = self.width
@@ -460,11 +469,11 @@ s.SET_WINDOW(width=40, height=18, os=OS)
 #s.WINDOW()
 
 # 5.[年齢制限内の上映予定の映画一覧を表示]
-#s.SET_TITLE("上映映画　一覧")
-#s.SET_TEXT_CENTER("映画を選択するには数字を入力してください", row=2)
-#s.MOVIE_LIST_CREATE(page=1) # ページを超えてエラーが出ないようにする
-#s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
-#s.WINDOW()
+s.SET_TITLE("上映映画　一覧")
+s.SET_TEXT_CENTER("映画を選択するには数字を入力してください", row=2)
+s.MOVIE_LIST_CREATE() # ページを超えてエラーが出ないようにする
+s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
+s.WINDOW()
 
 # 6.[タイムテーブル選択] - 製作中
 #s.SET_TITLE("タイムテーブルを選択")
