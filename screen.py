@@ -284,7 +284,9 @@ class Screen:
         #   rowはpositionより優先
         width = self.width
         height = self.height
-        msg = re_uni_txt(msg) # 装飾文字変換
+        try:
+            msg = re_uni_txt(msg) # 装飾文字変換
+        except: pass
         position = position.split(",")
         if not row:
             if "top"    == position[0]: row = 1
@@ -307,14 +309,17 @@ class Screen:
         return True
 
     def CLEAR_WINDOW(self):
-        # 製作中
         width = self.width
         height = self.height
         os = self.os
         BD = self.BD
         for h in range(height):
+            if 0 == h: continue
+            if h == height-1: break
             for w in range(width):
                 if 0 == w: continue
+                if w == width-1: break
+                self.L[h][w] = "　"
         return False
 
     def SEAT_CREATE(self, row=3, vacant="empty"):
@@ -480,4 +485,14 @@ s.SET_WINDOW(width=40, height=18, os=OS)
 #s.SET_TEXT("戻る　ｂ", position="bottom,left")
 #s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
 #no_vacant = s.SEAT_CREATE(row=4, vacant="empty") # 満席IDの配列を返す
+#s.WINDOW()
+
+# 8.[タイムテーブル選択]
+#s.SET_TITLE("内容確認")
+#s.SET_TEXT_CENTER("この内容でよろしいですか", row=4)
+#s.SET_TEXT("タイトル", row=6, col=10)
+#s.SET_TEXT("場所：スクリーン１", row=7, col=10)
+#s.SET_TEXT("時間：０９：１０～１０：５０", row=8, col=10)
+#s.SET_TEXT(["座","席","：","F ","15"], row=9, col=10)
+#s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
 #s.WINDOW()
