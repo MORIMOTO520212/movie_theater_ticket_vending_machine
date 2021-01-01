@@ -121,9 +121,9 @@ movie_meta_contents = [
     {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"}
 ]
 vacant_list = [
-    ["empty", "◎"], 
-    ["slight", "△"], 
-    ["full", "✕"]
+    ["empty", "◎", "◎ "], 
+    ["slight", "△", "△ "], 
+    ["full", "✕", "✕ "]
 ]
 screen_list = [
     "スクリーン０１", "スクリーン０２", "スクリーン０３", "スクリーン０４",

@@ -157,14 +157,14 @@ class Decoration:
     def end(self):
         return "\033[00m"
 
-gender_ch = {
+gender_toJa = { # gender to Japanese
     "male": "男性",
     "female": "女性"
 }
 vacant_list = [
-    ["empty", "◎"], 
-    ["slight", "△"], 
-    ["full", "✕"]
+    ["empty", "◎", "◎ "], 
+    ["slight", "△", "△ "], 
+    ["full", "✕", "✕ "]
 ]
 screen_list = [
     "スクリーン０１", "スクリーン０２", "スクリーン０３", "スクリーン０４",
@@ -361,7 +361,6 @@ class Screen:
 
     def MOVIE_LIST_CREATE(self ,page=1, view_num=4, row=4, col=1):
         width = self.width
-        height = self.height
         page_end = int(len(mdata)/view_num)
         if len(mdata)%view_num: page_end += 1
         if page > page_end:
@@ -399,7 +398,6 @@ class Screen:
     
     def TIMETABLE_CREATE(self, f=False, page=1, view_num=4, row=4, col=1):
         width = self.width
-        height = self.height
         no_vacant = [] # 満席の番号
         timetbl_lst = mdata[f]["timetbl"]
         table_num = view_num*page
@@ -409,7 +407,7 @@ class Screen:
                 # タイムテーブル番号
                 str_num = toem(i+1)
                 if "full" == timetbl_lst[i][2]:
-                    no_vacant.append(str_num)
+                    no_vacant.append(i+1)
                 screen = timetbl_lst[i][0] # スクリーン
                 time = timetbl_lst[i][1] # 上映時間
                 vacant = timetbl_lst[i][2] # 空席状況
@@ -440,9 +438,9 @@ s = Screen()
 s.SET_WINDOW(width=40, height=18, os=OS)
 
 
-usrdata = {"gender": "", "age":"", "mdata_idx": 0, "timetbl_idx": 0}
+usrdata = {"gender": "", "age":"","seat_id": "", "mdata_idx": 0, "timetbl_idx": 0}
 page = 1
-S = 5
+S = 1
 while True:
     s.CLEAR_WINDOW() # 画面初期化
     console_clear()
@@ -487,8 +485,7 @@ while True:
     if 4 == S:
         s.SET_TITLE("入力内容確認")
         s.SET_TEXT_CENTER("この内容で正しいですか。", row=5)
-        print(usrdata["gender"])
-        s.SET_TEXT_CENTER(f"性別：{gender_ch[usrdata['gender']]}", row=8)
+        s.SET_TEXT_CENTER(f"性別：{gender_toJa[usrdata['gender']]}", row=8)
         s.SET_TEXT_CENTER(f"年齢：{toem(usrdata['age'])}歳", row=10)
         s.SET_TEXT("やり直す　ｎ　／　次へ進む　ｙ", position="bottom,left")
         s.WINDOW()
@@ -504,7 +501,7 @@ while True:
         s.SET_TITLE("上映映画　一覧")
         s.SET_TEXT_CENTER("映画を選択するには番号を入力してください", row=2)
         page = s.MOVIE_LIST_CREATE(page=page) # ページを超えてエラーが出ないようにする
-        s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
+        s.SET_TEXT("前へ　ｂ　／　次へ　ｎ", position="bottom,left")
         s.WINDOW()
         res = input("入力>")
         if "n" == res: page += 1
@@ -518,14 +515,14 @@ while True:
         continue
 
     if 59 == S: # 5 エラー処理
-        s.SET_TEXT_CENTER("入力がエラーです。", row=5)
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
         s.SET_TEXT_CENTER("コマンドや番号の入力は半角英数字で入力してください。", row=7)
         s.WINDOW()
         time.sleep(1)
         S = 5
         continue
 
-    # 6.[タイムテーブル選択]
+    # 6.[タイムテーブルを選択]
     if 6 == S:
         s.SET_TITLE("タイムテーブルを選択")
         if OS == 1:
@@ -534,15 +531,16 @@ while True:
             text = ["空","席","状","況","：","◎ ","余","裕","あ","り","　","△ ","残","り","わ","ず","か","　","✕ ","満","席"]
             s.SET_TEXT_CENTER(text, row=2)
         s.SET_TEXT_CENTER("選択するには数字を入力してください", row=4)
-        s.SET_TEXT("戻る　ｂ　／　次へ　ｎ", position="bottom,left")
+        s.SET_TEXT("戻る　ｚ　　前へ　ｂ　／　次へ　ｎ", position="bottom,left")
         no_vacant = s.TIMETABLE_CREATE(f=usrdata["mdata_idx"], page=page, row=6) # f - mdataのインデックス
         s.WINDOW()
-        res = input("数字>")
+        res = input("入力>")
         if "n" == res: page += 1
         elif "b" == res: page -= 1
+        elif "z" == res: S -= 1
         else:
             if int(res) not in no_vacant:
-                usrdata["timetbl_idx"] = int(res)
+                usrdata["timetbl_idx"] = int(res)-1 # index
                 S += 1
             else: S = 69
         continue
@@ -562,35 +560,51 @@ while True:
         s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
         s.SET_TEXT("戻る　ｂ", position="bottom,left")
         s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
-        vacant = mdata[usrdata["mdata_idx"]]["timetbl"][usrdata["timetbl_idx"]][2]
+        mdata_idx = usrdata["mdata_idx"]
+        timetbl_idx = usrdata["timetbl_idx"]
+        vacant = mdata[mdata_idx]["timetbl"][timetbl_idx][2]
         no_vacant = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
         s.WINDOW()
-        while True:
-            res = input("座席ID>")
-            if  res not in no_vacant:
-                S += 1
-                break
-            else:
-                console_clear()
-                s.WINDOW()
-            continue
+        res = input("座席ID>")
+        if "b" == res:
+            S -= 1
+        elif  res not in no_vacant:
+            usrdata["seat_id"] = res
+            S += 1
+        else:
+            S = 79
+        continue
+
+    if 79 == S: # 7 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("席の指定はアルファベットに続き、数字と組み合わせてください。", row=7)
+        s.WINDOW()
+        time.sleep(1)
+        S = 7
+        continue
 
     # 8.[タイムテーブル選択]
     if 8 == S:
+        mdata_idx   = usrdata["mdata_idx"]
+        timetbl_idx = usrdata["timetbl_idx"]
+        title       = mdata[usrdata["mdata_idx"]]["title"]
+        seat_id     = usrdata["seat_id"]
+        screen      = mdata[mdata_idx]["timetbl"][timetbl_idx][0]
+        time        = mdata[mdata_idx]["timetbl"][timetbl_idx][1]
         s.SET_TITLE("内容確認")
         s.SET_TEXT_CENTER("この内容でよろしいですか", row=4)
-        s.SET_TEXT("タイトル", row=6, col=10)
-        s.SET_TEXT("場所：スクリーン１", row=7, col=10)
-        s.SET_TEXT("時間：０９：１０～１０：５０", row=8, col=10)
-        s.SET_TEXT(["座","席","：","F ","15"], row=9, col=10)
+        s.SET_TEXT_CENTER(title, row=6)
+        s.SET_TEXT(f"場所：{screen}", row=7, col=10)
+        s.SET_TEXT(f"時間：{time}", row=8, col=10)
+        s.SET_TEXT(["座","席","：",f"{seat_id[:1]} ",seat_id[1:]], row=9, col=10)
         s.SET_TEXT("料金：", row=10, col=10)
         s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
         s.WINDOW()
         res = input("入力>")
         if "n" == res:
             S = 5
-            continue
         if "y" == res:
             break
+        continue
 
-print("Complete!")
+print("complete!")
