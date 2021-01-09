@@ -9,7 +9,7 @@
 #   2.性別確認
 #   3.年齢確認
 #   4.入力内容確認
-#   5.年齢制限内の上映予定の映画一覧を表示
+#   5.上映予定の映画一覧を表示
 #       IPUTメンバー会員かつ鑑賞回数5回の場合　　一律1000円で表示
 #       18歳～59歳までは　　　　一律1800円で表示
 #       60歳～は　　一律1000円
@@ -32,8 +32,7 @@
 import re, time, datetime, random
 
 # ----- 初期設定 ----- #
-# - IPUTメンバー会員 -
-# True.[メンバー会員]  /  False.[メンバー会員でない]
+# True  IPUTメンバー会員  /  False  IPUTメンバー会員でない
 iput_member = True
 # この映画館での鑑賞回数
 count = 5
@@ -88,10 +87,10 @@ def re_uni_txt(text):
     # replace color script.
     # 一色のみ対応
     pattern = r".*?(\033\[.*?m).*"
-    result = re.match(pattern, text)
+    res = re.match(pattern, text)
     uni_txt = []
-    if result:
-        dec = result.group(1)
+    if res:
+        dec = res.group(1)
         text = text.replace(dec, "@").replace("\033[00m", "#")
         i = 0
         while i < len(text):
@@ -175,15 +174,22 @@ timetbl_list = [
     "１４：００～１５：５５", "１６：００～１７：５５", "１８：００～１９：５５",
     "２０：００～２１：５５"
 ]
+restricted_toAge = {
+    "Ｇ": 0,       #  0<=age
+    "ＰＧ１２": 12, # 12<=age 保護者の同意で鑑賞可能
+    "Ｒ１５＋": 15, # 15<=age
+    "Ｒ１８＋": 18  # 18<=age
+}
+# 性別,　年齢,　座席ID,　料金,　mdata index,　mdata timetbl index
+usrdata_init = {"gender": "", "age":"","seat_id": "","billing":"", "mdata_idx": 0, "timetbl_idx": 0}
 
 now = datetime.datetime.now()
 d_Y = now.strftime("%Y")
 d_m = now.strftime("%m")
 d_d = now.strftime("%d")
 
-# タイムテーブル2~6
+# 上映映画 仮想タイムテーブル作成
 mdata = []
-# 無作為抽出
 while 0 < len(movie_meta_contents):
     if 1 != len(movie_meta_contents):
         m_i = random.randint(0, len(movie_meta_contents)-1)
@@ -192,7 +198,7 @@ while 0 < len(movie_meta_contents):
     movie_meta_contents.pop(m_i)
 
 for m in mdata:
-    m["date"] = "{}年{}月{}日".format(toem(d_Y),toem(d_m),toem(d_d)) # 日付
+    m["date"] = "{}年{}月{}日".format(toem(d_Y),toem(d_m),toem(d_d))
     timetbl = []
     timetbl_srt = list(range(7))
     lr = random.sample(timetbl_srt, len(timetbl_srt))
@@ -205,7 +211,7 @@ for m in mdata:
                 timetbl_list[i], 
                 vacant_list[random.randint(0,2)][0]
             ])
-    m["timetbl"] = timetbl # タイムテーブル
+    m["timetbl"] = timetbl
 
 d = Decoration()
 empty     = d.setting(mode="custom", fg="white",  bg="white")
@@ -438,9 +444,11 @@ s = Screen()
 s.SET_WINDOW(width=40, height=18, os=OS)
 
 
-usrdata = {"gender": "", "age":"","seat_id": "", "mdata_idx": 0, "timetbl_idx": 0}
+usrdata = []
+ud_idx = 0
 page = 1
 S = 1
+seat_created = False
 while True:
     s.CLEAR_WINDOW() # 画面初期化
     console_clear()
@@ -452,6 +460,8 @@ while True:
         s.SET_TEXT_CENTER("次へ進むにはエンターを押してください", row=8)
         s.WINDOW()
         input()
+        usrdata.append(usrdata_init)
+        ud_idx = len(usrdata)-1
         S += 1
         continue
 
@@ -464,9 +474,9 @@ while True:
         s.WINDOW()
         gen = input("数字>")
         if gen == "1":
-            usrdata["gender"] = "male"
+            usrdata[ud_idx]["gender"] = "male"
         if gen == "2":
-            usrdata["gender"] = "female"
+            usrdata[ud_idx]["gender"] = "female"
         S += 1
         continue
 
@@ -477,7 +487,17 @@ while True:
         s.SET_TEXT("数字を入力してください", position="bottom,left")
         s.WINDOW()
         age = input("数字>")
-        usrdata["age"] = int(age)
+        age = int(age)
+        usrdata[ud_idx]["age"] = age
+        # 支払い
+        if iput_member and 5 == count: # スタンプカード
+            usrdata[ud_idx]["billing"] = "１０００"
+        elif 18 <= age and 59 >= age: # 一般
+            usrdata[ud_idx]["billing"] = "１８００"
+        elif 60 < age: # シニア
+            usrdata[ud_idx]["billing"] = "１１００"
+        else: # 小中高校生
+            usrdata[ud_idx]["billing"] = "１０００"
         S += 1
         continue
 
@@ -485,8 +505,8 @@ while True:
     if 4 == S:
         s.SET_TITLE("入力内容確認")
         s.SET_TEXT_CENTER("この内容で正しいですか。", row=5)
-        s.SET_TEXT_CENTER(f"性別：{gender_toJa[usrdata['gender']]}", row=8)
-        s.SET_TEXT_CENTER(f"年齢：{toem(usrdata['age'])}歳", row=10)
+        s.SET_TEXT_CENTER(f"性別：{gender_toJa[usrdata[ud_idx]['gender']]}", row=8)
+        s.SET_TEXT_CENTER(f"年齢：{toem(usrdata[ud_idx]['age'])}歳", row=10)
         s.SET_TEXT("やり直す　ｎ　／　次へ進む　ｙ", position="bottom,left")
         s.WINDOW()
         res = input("入力>")
@@ -508,19 +528,47 @@ while True:
         elif "b" == res: page -= 1
         else:
             try:
-                usrdata["mdata_idx"] = int(res)-1
-                page = 1
-                S += 1
+                m_restricted = mdata[int(res)-1]["restricted"]
+                if restricted_toAge[m_restricted] <= usrdata[ud_idx]["age"]:
+                    usrdata[ud_idx]["mdata_idx"] = int(res)-1
+                    S += 1
+                elif "ＰＧ１２" == m_restricted:
+                    usrdata[ud_idx]["mdata_idx"] = int(res)-1
+                    S = 57
+                else:
+                    S = 58
             except: S = 59
         continue
 
-    if 59 == S: # 5 エラー処理
-        s.SET_TEXT_CENTER("不正な入力です", row=5)
-        s.SET_TEXT_CENTER("コマンドや番号の入力は半角英数字で入力してください。", row=7)
+    if 57 == S: # 5 PG12 規制
+        # １２歳未満は親の同意が必要です　同意しないｎ／同意するｙ
+        s.SET_TEXT_CENTER("１２歳未満は親の同意が必要です。")
+        s.SET_TEXT("同意しない　ｎ　／　同意する　ｙ", position="bottom,left")
+        s.WINDOW()
+        res = input("入力>")
+        if "y" == res: S = 6
+        elif "n" == res: S = 5
+        else: S = 59 # エラー処理
+        continue
+
+    if 58 == S: # 5 R15+ R18+ 規制
+        s.SET_TEXT_CENTER(
+            toem(restricted_toAge[m_restricted])+"歳未満はこの映画は鑑賞することができません。"
+        )
         s.WINDOW()
         time.sleep(1)
         S = 5
         continue
+
+    if 59 == S: # 5 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        time.sleep(1)
+        S = 5
+        continue
+
+    page = 1
 
     # 6.[タイムテーブルを選択]
     if 6 == S:
@@ -532,7 +580,7 @@ while True:
             s.SET_TEXT_CENTER(text, row=2)
         s.SET_TEXT_CENTER("選択するには数字を入力してください", row=4)
         s.SET_TEXT("戻る　ｚ　　前へ　ｂ　／　次へ　ｎ", position="bottom,left")
-        no_vacant = s.TIMETABLE_CREATE(f=usrdata["mdata_idx"], page=page, row=6) # f - mdataのインデックス
+        no_vacant = s.TIMETABLE_CREATE(f=usrdata[ud_idx]["mdata_idx"], page=page, row=6) # f - mdataのインデックス
         s.WINDOW()
         res = input("入力>")
         if "n" == res: page += 1
@@ -540,7 +588,7 @@ while True:
         elif "z" == res: S -= 1
         else:
             if int(res) not in no_vacant:
-                usrdata["timetbl_idx"] = int(res)-1 # index
+                usrdata[ud_idx]["timetbl_idx"] = int(res)-1 # index
                 S += 1
             else: S = 69
         continue
@@ -560,16 +608,23 @@ while True:
         s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
         s.SET_TEXT("戻る　ｂ", position="bottom,left")
         s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
-        mdata_idx = usrdata["mdata_idx"]
-        timetbl_idx = usrdata["timetbl_idx"]
+        mdata_idx = usrdata[ud_idx]["mdata_idx"]
+        timetbl_idx = usrdata[ud_idx]["timetbl_idx"]
         vacant = mdata[mdata_idx]["timetbl"][timetbl_idx][2]
-        no_vacant = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
+        if not seat_created:
+            no_vacant = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
         s.WINDOW()
+        seat_created = True
         res = input("座席ID>")
         if "b" == res:
             S -= 1
         elif  res not in no_vacant:
-            usrdata["seat_id"] = res
+            pattern = r"([A-Z]{1})([0-9]{2})"
+            res = re.match(pattern, res)
+            if not res:
+                S = 79
+                continue
+            usrdata[ud_idx]["seat_id"] = res.group()
             S += 1
         else:
             S = 79
@@ -583,28 +638,51 @@ while True:
         S = 7
         continue
 
-    # 8.[タイムテーブル選択]
+
+    # 8.[内容確認]
     if 8 == S:
-        mdata_idx   = usrdata["mdata_idx"]
-        timetbl_idx = usrdata["timetbl_idx"]
-        title       = mdata[usrdata["mdata_idx"]]["title"]
-        seat_id     = usrdata["seat_id"]
+        # IPUTメンバー会員かつ鑑賞回数5回の場合　　一律1000円で表示
+        # 18歳～59歳までは　　　　一律1800円で表示
+        # 60歳～は　　一律1000円
+        mdata_idx   = usrdata[ud_idx]["mdata_idx"]
+        timetbl_idx = usrdata[ud_idx]["timetbl_idx"]
+        title       = mdata[mdata_idx]["title"]
+        date        = mdata[mdata_idx]["date"]
+        seat_id     = usrdata[ud_idx]["seat_id"]
         screen      = mdata[mdata_idx]["timetbl"][timetbl_idx][0]
         time        = mdata[mdata_idx]["timetbl"][timetbl_idx][1]
+        billing     = usrdata[ud_idx]["billing"]
         s.SET_TITLE("内容確認")
         s.SET_TEXT_CENTER("この内容でよろしいですか", row=4)
         s.SET_TEXT_CENTER(title, row=6)
-        s.SET_TEXT(f"場所：{screen}", row=7, col=10)
-        s.SET_TEXT(f"時間：{time}", row=8, col=10)
-        s.SET_TEXT(["座","席","：",f"{seat_id[:1]} ",seat_id[1:]], row=9, col=10)
-        s.SET_TEXT("料金：", row=10, col=10)
+        s.SET_TEXT(f"日付：{date}", row=7, col=10)
+        s.SET_TEXT(f"場所：{screen}", row=8, col=10)
+        s.SET_TEXT(f"時間：{time}", row=9, col=10)
+        s.SET_TEXT(["座","席","：",f"{seat_id[:1]} ", seat_id[1:]], row=10, col=10)
+        s.SET_TEXT(f"料金：{billing}円", row=11, col=10)
         s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
         s.WINDOW()
         res = input("入力>")
         if "n" == res:
             S = 5
-        if "y" == res:
-            break
+        elif "y" == res:
+            S += 1
         continue
 
+    # 9.[もう一枚チケットを購入するかどうか]
+    if 9 == S:
+        s.SET_TITLE("内容確認")
+        s.SET_TEXT_CENTER("もう一枚チケットを購入しますか。")
+        s.SET_TEXT("終了　ｎ　／　はい　ｙ", position="bottom,left")
+        s.WINDOW()
+        res = input("入力>")
+        if "n" == res:
+            break
+        elif "y" == res:
+            S = 1
+            seat_created = False
+
 print("complete!")
+
+for usr in usrdata:
+    print(usr)
