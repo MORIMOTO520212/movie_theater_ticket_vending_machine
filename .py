@@ -1,7 +1,13 @@
-import re
+import json
+lst = []
+def dict_tmp(): return {"A": False}
 
-text = "A011"
-pattern = r"([A-Z]{1})([0-9]{2})"
-res = re.match(pattern, text)
+lst.append(dict_tmp())
+lst.append(dict_tmp())
+lst.append(dict_tmp())
+lst.append(dict_tmp())
+lst.append(dict_tmp())
+print(lst)
 
-print(res.group())
+lst[0]["A"] = True
+print(lst)

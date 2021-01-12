@@ -181,7 +181,7 @@ restricted_toAge = {
     "Ｒ１８＋": 18  # 18<=age
 }
 # 性別,　年齢,　座席ID,　料金,　mdata index,　mdata timetbl index
-usrdata_init = {"gender": "", "age":"","seat_id": "","billing":"", "mdata_idx": 0, "timetbl_idx": 0}
+def usrdata_init(): return {"gender": "", "age":"","seat_id": "","billing":"", "mdata_idx": 0, "timetbl_idx": 0}
 
 now = datetime.datetime.now()
 d_Y = now.strftime("%Y")
@@ -460,7 +460,7 @@ while True:
         s.SET_TEXT_CENTER("次へ進むにはエンターを押してください", row=8)
         s.WINDOW()
         input()
-        usrdata.append(usrdata_init)
+        usrdata.append(usrdata_init())
         ud_idx = len(usrdata)-1
         S += 1
         continue
