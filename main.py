@@ -1,41 +1,36 @@
 #   映画館　券売機システム YOHO CINEMA.
 #   created 2020.12.18
 #
-#   動作環境：[Google Colaboratory], [Visual Studio Code], [Linux] 
-#   ※[Jupyter Notebook] [Windows cmd] 非対応
-#   
-#   流れ
-#   1.ようこそ！
-#   2.性別確認
-#   3.年齢確認
-#   4.入力内容確認
-#   5.上映予定の映画一覧を表示
-#       IPUTメンバー会員かつ鑑賞回数5回の場合　　一律1000円で表示
-#       18歳～59歳までは　　　　一律1800円で表示
-#       60歳～は　　一律1000円
-#       日付　タイトル　上映時間　レイティング
-#   6.タイムテーブル選択
-#       空席状況 ◎余裕あり △残りわずか ✕満席
-#   7.座席選択
-#   8.内容確認
+#   ##1##
+#   いままでの券売機システムには、ヒューマンエラーの処理やUXがなく使いにくかったのが問題だと思ったので改良した。
 #
-#   [リファレンス]
+#   ##2##
+#   画面の中に文字が密になっていてわかりにくいので、さらに文字を簡略化し配置を整え、かつ理解しやすいように文を整理する。
+#   
+#   ##3##
 #   bashで16色表示するスクリプト用意しておくと便利 (https://gist.github.com/soramugi/7968403)
 #   イオンシネマズの券売機でチケットを購入してみた (https://www.youtube.com/watch?v=iMuR0ATD48g)
 #   TOHOシネマズ南大沢 スクリーン座席表（483人）- MDATA (https://zaseki.music-mdata.com/26198/1)
 #   Google Colabの出力を定期的にクリアする方法 (https://www.366service.com/jp/qa/dfe7790f6cc709645fb160e50e504b22)
-
-# empty - 余裕あり
-# slight - 残りわずか
-# full - 満席
-
-import re, time, datetime, random
-
-# ----- 初期設定 ----- #
-# True  IPUTメンバー会員  /  False  IPUTメンバー会員でない
+#
+#
+#
+#   動作環境：[Google Colaboratory], [Visual Studio Code], [Linux] 
+#   ※[Jupyter Notebook] [Windows cmd] 非対応
+#
+#
+#   [初期設定]
+#   これらの情報は画面から入力できないようにする
+#   True  IPUTメンバー会員  /  False  IPUTメンバー会員でない
 iput_member = True
-# この映画館での鑑賞回数
-count = 5
+#   この映画館での鑑賞回数
+count = 6
+
+
+import re, datetime, random, json
+from time import sleep
+
+
 
 movie_meta_contents = [
     {"title": "約束のネバーランド", "hour": "１１９分", "restricted": "Ｇ"},
@@ -49,21 +44,33 @@ movie_meta_contents = [
     {"title": "魔女がいっぱい", "hour": "１０４分", "restricted": "Ｇ"},
     {"title": "天外者", "hour": "１０９分", "restricted": "Ｇ"},
     {"title": "ジョゼと虎と魚たち（＇２０）", "hour": "９８分", "restricted": "Ｇ"},
-    {"title": "劇場版　Ｆａｔｅ／Ｇｒａｎｄ　Ｏｒｄｅｒ　神聖円卓領域キャメロット　全編　Ｗａｎｄｅｒｉｎｇ；Ａｇａｔｅｒｍ", "hour": "８９分", "restricted": "Ｇ"},
+    {"title": "劇場版　Ｆａｔｅ／Ｇｒａｎｄ　Ｏｒｄｅｒ　神聖円卓領域キャメロット　全編", "hour": "８９分", "restricted": "Ｇ"},
     {"title": "新解釈・三國志", "hour": "１１３分", "restricted": "Ｇ"},
     {"title": "天気の子", "hour": "１１１分", "restricted": "Ｇ"},
     {"title": "借りぐらしのアリエッティ", "hour": "９５分", "restricted": "Ｇ"},
     {"title": "ヱヴァンゲリヲン新劇場版：Ｑ", "hour": "１０６分", "restricted": "Ｇ"},
     {"title": "ぐらんぶる", "hour": "１０８分", "restricted": "ＰＧ１２"},
     {"title": "映画クレヨンしんちゃん　激突！ラクガキングダムとほぼ四人の勇者", "hour": "１０４分", "restricted": "Ｇ"},
-    {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"}
+    {"title": "映画ドラえもん　のび太の新恐竜", "hour": "１１１分", "restricted": "Ｇ"},
+    {"title": "銀魂　ＴＨＥ　ＦＩＮＡＬ", "hour": "１０４分", "restricted": "ＰＧ１２"},
+    {"title": "新感染半島　ファイナル・ステージ", "hour": "１１６分", "restricted": "Ｇ"},
+    {"title": "サイレント・トーキョー", "hour": "９９分", "restricted": "Ｇ"},
+    {"title": "ＬＩＰＸＬＩＰ　ＦＩＬＭＸＬＩＶＥ", "hour": "９０分", "restricted": "Ｇ"},
+    {"title": "トイ・ストーリー４", "hour": "１００分", "restricted": "Ｇ"},
+    {"title": "ベイマックス", "hour": "１０８分", "restricted": "Ｇ"},
+    {"title": "アナと雪の女王", "hour": "１０９分", "restricted": "Ｇ"},
+    {"title": "シュガー・ラッシュ", "hour": "１０８分", "restricted": "Ｇ"},
+    {"title": "ズートピア", "hour": "１１１分", "restricted": "Ｇ"},
+    {"title": "ルイスと未来の泥棒", "hour": "１０２分", "restricted": "Ｇ"},
+    {"title": "チキンリトル", "hour": "８１分", "restricted": "Ｇ"},
+    {"title": "ロボッツ", "hour": "９１分", "restricted": "Ｇ"},
+    {"title": "ウォーリー", "hour": "１０３分", "restricted": "Ｇ"}
 ]
 
-# 実行環境検証
+# 実行環境検出
 console_clear_st = True
 OS = 1 # google colab
-try:
-    from google.colab import output
+try: from google.colab import output
 except ImportError:
     console_clear_st = False
     OS = 2 # vscode linux
@@ -75,8 +82,7 @@ def console_clear():
     else:
         os.system("cls")
 
-def toem(n):
-    # 半角数字から全角数字に変換する
+def toem(n): # 半角数字から全角数字に変換する
     num = ["０","１","２","３","４","５","６","７","８","９"]
     em = ""
     for i in str(n):
@@ -363,7 +369,9 @@ class Screen:
                         self.L[h+row][i] = "  "
                     if x == len(seat_num):
                         break
-        return no_vacant # 満席
+
+        return no_vacant, self.L # 満席 座席表データ
+
 
     def MOVIE_LIST_CREATE(self ,page=1, view_num=4, row=4, col=1):
         width = self.width
@@ -433,16 +441,16 @@ class Screen:
                 row += 2
         return no_vacant
 
-    def WINDOW(self): # 出力
-        for line in self.L:
+    def WINDOW(self, data=False): # 出力  [data(list)] 画面データをセットできる
+        if data: L = data
+        else: L = self.L
+        for line in L:
             for raw in line:
                 print(raw, end="")
             print()
 
-
 s = Screen()
 s.SET_WINDOW(width=40, height=18, os=OS)
-
 
 usrdata = []
 ud_idx = 0
@@ -472,12 +480,22 @@ while True:
         s.SET_TEXT_CENTER("１．男性　／　２．女性", row=8)
         s.SET_TEXT("数字を入力してください", position="bottom,left")
         s.WINDOW()
-        gen = input("数字>")
+        S += 1
+        gen = input("数字 >")
         if gen == "1":
             usrdata[ud_idx]["gender"] = "male"
-        if gen == "2":
+        elif gen == "2":
             usrdata[ud_idx]["gender"] = "female"
-        S += 1
+        else:
+            S = 29
+        continue
+
+    if S == 29: # 2 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        sleep(1)
+        S = 2
         continue
 
     # 3.[年齢確認]
@@ -486,8 +504,12 @@ while True:
         s.SET_TEXT_CENTER("年齢を入力してください。")
         s.SET_TEXT("数字を入力してください", position="bottom,left")
         s.WINDOW()
-        age = input("数字>")
-        age = int(age)
+        age = input("数字 >")
+        try:
+            age = int(age) # エラー処理
+        except:
+            S == 39
+            continue
         usrdata[ud_idx]["age"] = age
         # 支払い
         if iput_member and 5 == count: # スタンプカード
@@ -501,6 +523,14 @@ while True:
         S += 1
         continue
 
+    if S == 39: # 3 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        sleep(1)
+        S = 3
+        continue
+
     # 4.[入力内容確認]
     if 4 == S:
         s.SET_TITLE("入力内容確認")
@@ -509,11 +539,21 @@ while True:
         s.SET_TEXT_CENTER(f"年齢：{toem(usrdata[ud_idx]['age'])}歳", row=10)
         s.SET_TEXT("やり直す　ｎ　／　次へ進む　ｙ", position="bottom,left")
         s.WINDOW()
-        res = input("入力>")
-        if res == "y":
+        res = input("入力 >").upper()
+        if res == "Y":
             S += 1
-        elif res == "n":
+        elif res == "N":
             S = 2
+        else:
+            S = 49
+        continue
+
+    if S == 49: # 4 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        sleep(1)
+        S = 4
         continue
 
     # 5.[年齢制限内の上映予定の映画一覧を表示]
@@ -523,9 +563,9 @@ while True:
         page = s.MOVIE_LIST_CREATE(page=page) # ページを超えてエラーが出ないようにする
         s.SET_TEXT("前へ　ｂ　／　次へ　ｎ", position="bottom,left")
         s.WINDOW()
-        res = input("入力>")
-        if "n" == res: page += 1
-        elif "b" == res: page -= 1
+        res = input("入力>").upper()
+        if "N" == res: page += 1
+        elif "B" == res: page -= 1
         else:
             try:
                 m_restricted = mdata[int(res)-1]["restricted"]
@@ -545,9 +585,9 @@ while True:
         s.SET_TEXT_CENTER("１２歳未満は親の同意が必要です。")
         s.SET_TEXT("同意しない　ｎ　／　同意する　ｙ", position="bottom,left")
         s.WINDOW()
-        res = input("入力>")
-        if "y" == res: S = 6
-        elif "n" == res: S = 5
+        res = input("入力>").upper()
+        if "Y" == res: S = 6
+        elif "N" == res: S = 5
         else: S = 59 # エラー処理
         continue
 
@@ -556,7 +596,7 @@ while True:
             toem(restricted_toAge[m_restricted])+"歳未満はこの映画は鑑賞することができません。"
         )
         s.WINDOW()
-        time.sleep(1)
+        sleep(1)
         S = 5
         continue
 
@@ -564,7 +604,7 @@ while True:
         s.SET_TEXT_CENTER("不正な入力です", row=5)
         s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
         s.WINDOW()
-        time.sleep(1)
+        sleep(1)
         S = 5
         continue
 
@@ -582,10 +622,10 @@ while True:
         s.SET_TEXT("戻る　ｚ　　前へ　ｂ　／　次へ　ｎ", position="bottom,left")
         no_vacant = s.TIMETABLE_CREATE(f=usrdata[ud_idx]["mdata_idx"], page=page, row=6) # f - mdataのインデックス
         s.WINDOW()
-        res = input("入力>")
-        if "n" == res: page += 1
-        elif "b" == res: page -= 1
-        elif "z" == res: S -= 1
+        res = input("入力 >").upper()
+        if "N" == res: page += 1
+        elif "B" == res: page -= 1
+        elif "Z" == res: S -= 1
         else:
             if int(res) not in no_vacant:
                 usrdata[ud_idx]["timetbl_idx"] = int(res)-1 # index
@@ -597,28 +637,37 @@ while True:
         s.CLEAR_WINDOW()
         s.SET_TEXT_CENTER("選択した時間は満席です。")
         s.WINDOW()
-        time.sleep(1)
+        sleep(1)
         S = 6
         continue
 
-    # 7.[座席選択 スクリーン画面]
+    # 7.[座席選択 スクリーン画面] 席入力でエラーが出た後座席表が出ない
     if 7 == S:
-        s.SET_TITLE("座席指定　スクリーン１")
+        mdata_idx   = usrdata[ud_idx]["mdata_idx"]
+        timetbl_idx = usrdata[ud_idx]["timetbl_idx"]
+        screen  = mdata[mdata_idx]["timetbl"][timetbl_idx][0]
+        s.SET_TITLE(f"座席指定　{screen}")
         s.SET_TEXT("席の指定はアルファベットと数字を組み合わせて下さい。　例）Ａ０１", row=1)
-        s.SET_TEXT(f"{white}白{d.end()}の席はすでに予約されています。", row=2)
+        s.SET_TEXT(f"{white}白色{d.end()}の席はすでに予約されています。", row=2)
+        s.SET_TEXT_CENTER("１階席", row=3)
+        s.SET_TEXT_CENTER("２階席", row=9)
         s.SET_TEXT("戻る　ｂ", position="bottom,left")
         s.SET_TEXT("指定する席のＩＤを入力してください。", position="bottom,right")
         mdata_idx = usrdata[ud_idx]["mdata_idx"]
         timetbl_idx = usrdata[ud_idx]["timetbl_idx"]
         vacant = mdata[mdata_idx]["timetbl"][timetbl_idx][2]
+
         if not seat_created:
-            no_vacant = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
-        s.WINDOW()
+            no_vacant, seatData = s.SEAT_CREATE(row=4, vacant=vacant) # 満席IDの配列を返す
+            seatData = json.dumps(seatData) # インスタンス変数の中身が常に変更されるのを防止する(原因不明)
+            s.WINDOW()
+        else:
+            s.WINDOW(json.loads(seatData))
         seat_created = True
-        res = input("座席ID>")
-        if "b" == res:
+        res = input("座席ID >").upper()
+        if "B" == res:
             S -= 1
-        elif  res not in no_vacant:
+        elif res not in no_vacant:
             pattern = r"([A-Z]{1})([0-9]{2})"
             res = re.match(pattern, res)
             if not res:
@@ -627,17 +676,24 @@ while True:
             usrdata[ud_idx]["seat_id"] = res.group()
             S += 1
         else:
-            S = 79
+            S = 78
+        continue
+
+    if 78 == S: # 7 満席処理
+        s.SET_TEXT_CENTER("指定した席は満席です")
+        s.WINDOW()
+        sleep(1)
+        S = 7
         continue
 
     if 79 == S: # 7 エラー処理
         s.SET_TEXT_CENTER("不正な入力です", row=5)
-        s.SET_TEXT_CENTER("席の指定はアルファベットに続き、数字と組み合わせてください。", row=7)
+        s.SET_TEXT_CENTER("半角英数字で、アルファベットに続き、数字と組み合わせてください。", row=7)
+        s.SET_TEXT_CENTER("例）Ａ１０", row=8)
         s.WINDOW()
-        time.sleep(1)
+        sleep(1)
         S = 7
         continue
-
 
     # 8.[内容確認]
     if 8 == S:
@@ -662,11 +718,21 @@ while True:
         s.SET_TEXT(f"料金：{billing}円", row=11, col=10)
         s.SET_TEXT("やり直す　ｎ　／　はい　ｙ", position="bottom,left")
         s.WINDOW()
-        res = input("入力>")
-        if "n" == res:
+        res = input("入力 >").upper()
+        if "N" == res:
             S = 5
-        elif "y" == res:
+        elif "Y" == res:
             S += 1
+        else:
+            S = 89
+        continue
+
+    if S == 89: # 8 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        sleep(1)
+        S = 8
         continue
 
     # 9.[もう一枚チケットを購入するかどうか]
@@ -675,14 +741,32 @@ while True:
         s.SET_TEXT_CENTER("もう一枚チケットを購入しますか。")
         s.SET_TEXT("終了　ｎ　／　はい　ｙ", position="bottom,left")
         s.WINDOW()
-        res = input("入力>")
-        if "n" == res:
+        res = input("入力 >").upper()
+        if "N" == res:
             break
-        elif "y" == res:
+        elif "Y" == res:
             S = 1
-            seat_created = False
+            seat_created = False # 座席表データを新たに作成する
+        else:
+            S = 99
+    
+    if S == 99: # 9 エラー処理
+        s.SET_TEXT_CENTER("不正な入力です", row=5)
+        s.SET_TEXT_CENTER("半角英数字で入力してください。", row=7)
+        s.WINDOW()
+        sleep(1)
+        S = 9
+        continue
 
-print("complete!")
+console_clear()
 
+print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 for usr in usrdata:
-    print(usr)
+    print(f"[購入者情報]\n  性別：{gender_toJa[usr['gender']]}\n  年齢：{usr['age']}\n\n[チケット情報]\n  タイトル：{mdata[usr['mdata_idx']]['title']}\n\
+  鑑賞日付：{mdata[usr['mdata_idx']]['date']}\n  上映時間：{mdata[usr['mdata_idx']]['timetbl'][usr['timetbl_idx']][1]}\n  上映スクリーン：{mdata[usr['mdata_idx']]['timetbl'][usr['timetbl_idx']][0]}\n\
+  座席：{usr['seat_id']}\n\n[チケット一枚の単価]\n  {usr['billing']}円\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+bill_sum = 0
+for usr in usrdata: bill_sum += int(usr["billing"]) # 合計金額
+
+print(f"\n[チケットの購入枚数]\n{toem(len(usrdata))}枚\n[支払い料金の合計金額]\n{toem(bill_sum)}円")
